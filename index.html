@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Compressor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .file-input-label.has-file {
+            background: #e7f5ff;
+            border-color: #339af0;
+            border-style: solid;
+        }
+        
+        input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .preset-info {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .advanced-settings {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .advanced-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .advanced-header h3 {
+            color: #495057;
+            font-size: 16px;
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+        
+        .advanced-header.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .advanced-content {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .advanced-content.show {
+            display: block;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .progress-bar {
+            display: none;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-bar.active {
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: progress 2s ease-in-out infinite;
+        }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
+        }
+        
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #d4edda;
+            border-radius: 10px;
+            color: #155724;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Video Compressor</h1>
+        <p class="subtitle">Compress your .mov screen recordings with ease</p>
+        
+        <form id="compressionForm">
+            <div class="file-input-wrapper">
+                <label for="fileInput" class="file-input-label" id="fileLabel">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6c757d;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p style="margin-top: 10px; color: #495057; font-weight: 500;">Choose a .mov file</p>
+                    <p style="margin-top: 5px; color: #6c757d; font-size: 12px;">or drag and drop here</p>
+                </label>
+                <input type="file" id="fileInput" accept=".mov,video/quicktime" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="preset">Compression Preset</label>
+                <select id="preset" name="preset">
+                    <option value="high">High Quality</option>
+                    <option value="medium" selected>Balanced</option>
+                    <option value="low">Small File</option>
+                    <option value="web">Web Optimized (720p)</option>
+                </select>
+                <div class="preset-info" id="presetInfo">Balanced quality and file size</div>
+            </div>
+            
+            <div class="advanced-settings">
+                <div class="advanced-header" id="advancedToggle">
+                    <h3>Advanced Settings</h3>
+                    <svg class="toggle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                
+                <div class="advanced-content" id="advancedContent">
+                    <div class="form-group">
+                        <label for="crf">Quality (CRF)</label>
+                        <input type="number" id="crf" name="crf" min="0" max="51" placeholder="Auto">
+                        <div class="preset-info">0-51, lower = better quality, larger file</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scale">Resolution</label>
+                        <select id="scale" name="scale">
+                            <option value="none">Keep Original</option>
+                            <option value="1920:-2">1080p</option>
+                            <option value="1280:-2">720p</option>
+                            <option value="854:-2">480p</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fps">Frame Rate</label>
+                        <input type="number" id="fps" name="fps" min="1" max="60" placeholder="Keep Original">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="codec">Video Codec</label>
+                        <select id="codec" name="codec">
+                            <option value="h264" selected>H.264 (Better compatibility)</option>
+                            <option value="h265">H.265/HEVC (Better compression)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="compressBtn">Compress Video</button>
+            
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill"></div>
+            </div>
+            
+            <div class="result" id="result">
+                <h3 id="resultTitle">Compression Complete!</h3>
+                <p id="resultMessage"></p>
+                <div class="stats" id="stats"></div>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.getElementById('fileLabel');
+        const form = document.getElementById('compressionForm');
+        const compressBtn = document.getElementById('compressBtn');
+        const progressBar = document.getElementById('progressBar');
+        const result = document.getElementById('result');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const stats = document.getElementById('stats');
+        const presetSelect = document.getElementById('preset');
+        const presetInfo = document.getElementById('presetInfo');
+        const advancedToggle = document.getElementById('advancedToggle');
+        const advancedContent = document.getElementById('advancedContent');
+        
+        // Preset descriptions
+        const presetDescriptions = {
+            'high': 'High quality, larger file size',
+            'medium': 'Balanced quality and file size',
+            'low': 'Lower quality, smaller file size',
+            'web': 'Optimized for web (720p resolution)'
+        };
+        
+        // Update preset info
+        presetSelect.addEventListener('change', () => {
+            presetInfo.textContent = presetDescriptions[presetSelect.value];
+        });
+        
+        // Toggle advanced settings
+        advancedToggle.addEventListener('click', () => {
+            advancedToggle.classList.toggle('expanded');
+            advancedContent.classList.toggle('show');
+        });
+        
+        // File input handling
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileLabel.classList.add('has-file');
+                fileLabel.innerHTML = `
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #339af0;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <p style="margin-top: 10px; color: #495057; font-weight: 500;">${file.name}</p>
+                    <p style="margin-top: 5px; color: #6c757d; font-size: 12px;">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                `;
+            }
+        });
+        
+        // Drag and drop
+        fileLabel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileLabel.style.background = '#e9ecef';
+        });
+        
+        fileLabel.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileLabel.style.background = fileLabel.classList.contains('has-file') ? '#e7f5ff' : '#f8f9fa';
+        });
+        
+        fileLabel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+        
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+            
+            // Show progress
+            compressBtn.disabled = true;
+            compressBtn.textContent = 'Compressing...';
+            progressBar.classList.add('active');
+            result.classList.remove('show');
+            
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('preset', presetSelect.value);
+            
+            // Add advanced settings if provided
+            const crf = document.getElementById('crf').value;
+            if (crf) formData.append('crf', crf);
+            
+            const scale = document.getElementById('scale').value;
+            if (scale !== 'none') formData.append('scale', scale);
+            
+            const fps = document.getElementById('fps').value;
+            if (fps) formData.append('fps', fps);
+            
+            formData.append('codec', document.getElementById('codec').value);
+            
+            try {
+                const response = await fetch('/compress', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // Get compression info from headers
+                    const compressionInfo = JSON.parse(response.headers.get('X-Compression-Info') || '{}');
+                    
+                    // Download the compressed file
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = file.name.replace('.mov', '_compressed.mp4');
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Show success
+                    result.classList.remove('error');
+                    result.classList.add('show');
+                    resultTitle.textContent = '✓ Compression Complete!';
+                    resultMessage.textContent = 'Your compressed video has been downloaded.';
+                    
+                    // Show stats
+                    if (compressionInfo.original_size) {
+                        stats.innerHTML = `
+                            <div class="stat">
+                                <div class="stat-label">Original Size</div>
+                                <div class="stat-value">${(compressionInfo.original_size / 1024 / 1024).toFixed(1)} MB</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Compressed Size</div>
+                                <div class="stat-value">${(compressionInfo.compressed_size / 1024 / 1024).toFixed(1)} MB</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Size Reduction</div>
+                                <div class="stat-value">${compressionInfo.ratio}</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">Compression Preset</div>
+                                <div class="stat-value">${presetSelect.value}</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Compression failed');
+                }
+            } catch (error) {
+                // Show error
+                result.classList.add('error');
+                result.classList.add('show');
+                resultTitle.textContent = '✗ Compression Failed';
+                resultMessage.textContent = error.message;
+                stats.innerHTML = '';
+            } finally {
+                // Reset button
+                compressBtn.disabled = false;
+                compressBtn.textContent = 'Compress Video';
+                progressBar.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
