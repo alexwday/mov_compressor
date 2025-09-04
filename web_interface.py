@@ -150,9 +150,9 @@ def start_server(port=8080):
     server_address = ('', port)
     httpd = HTTPServer(server_address, CompressionHandler)
     
-    print(f"\n🎬 Video Compression Web Interface")
+    print("\nVideo Compression Web Interface")
     print(f"   Open http://localhost:{port} in your browser")
-    print(f"   Press Ctrl+C to stop\n")
+    print("   Press Ctrl+C to stop\n")
     
     try:
         httpd.serve_forever()

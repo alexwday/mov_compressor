@@ -220,12 +220,12 @@ Examples:
     )
     
     if result['success']:
-        print(f"\n✓ Compression complete!")
+        print("\nCompression complete!")
         print(f"  Output: {result['output_file']}")
-        print(f"  Size: {result['input_size'] / 1024 / 1024:.1f}MB → {result['output_size'] / 1024 / 1024:.1f}MB")
+        print(f"  Size: {result['input_size'] / 1024 / 1024:.1f}MB -> {result['output_size'] / 1024 / 1024:.1f}MB")
         print(f"  Reduction: {result['compression_ratio']}")
     else:
-        print(f"\n✗ Compression failed:")
+        print("\nCompression failed:")
         print(result['error'])
         sys.exit(1)
 
