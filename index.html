@@ -241,7 +241,7 @@
 <body>
     <div class="container">
         <h1>🎬 Video Compressor</h1>
-        <p class="subtitle">Compress your .mov screen recordings with ease</p>
+        <p class="subtitle">Compress your video files with ease</p>
         
         <form id="compressionForm">
             <div class="file-input-wrapper">
@@ -251,10 +251,10 @@
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
-                    <p style="margin-top: 10px; color: #495057; font-weight: 500;">Choose a .mov file</p>
+                    <p style="margin-top: 10px; color: #495057; font-weight: 500;">Choose a video file</p>
                     <p style="margin-top: 5px; color: #6c757d; font-size: 12px;">or drag and drop here</p>
                 </label>
-                <input type="file" id="fileInput" accept=".mov,video/quicktime" required>
+                <input type="file" id="fileInput" accept=".mov,.mp4,.mkv,.avi,.webm,video/*" required>
             </div>
             
             <div class="form-group">
@@ -441,7 +441,9 @@
                     const a = document.createElement('a');
                     a.style.display = 'none';
                     a.href = url;
-                    a.download = file.name.replace('.mov', '_compressed.mp4');
+                    // Remove any extension and add _compressed.mp4
+                    const baseName = file.name.replace(/\.[^/.]+$/, '');
+                    a.download = baseName + '_compressed.mp4';
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);

@@ -142,9 +142,18 @@ class VideoCompressor:
                 'settings': settings
             }
         except subprocess.CalledProcessError as e:
+            # Handle stderr which may be string or bytes
+            error_msg = e.stderr
+            if isinstance(error_msg, bytes):
+                error_msg = error_msg.decode('utf-8', errors='replace')
             return {
                 'success': False,
-                'error': e.stderr
+                'error': error_msg
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
             }
 
 
